@@ -1,8 +1,19 @@
 # Yaklang Goja fork
 
-This repository is a hard fork maintained for Yaklang. It combines current
-Goja and goja_nodejs sources in one module, targets Yaklang's Go toolchain, and
+This repository is a hard fork maintained for Yaklang. It combines Goja and
+goja_nodejs sources in one module, targets Yaklang's Go toolchain, and
 uses a bounded PCRE2 fallback without depending on `github.com/dlclark/regexp2`.
+
+## Maintenance and licensing
+
+The baselines below are intentionally frozen. This repository does not merge or
+rebase upstream branches after the fork. Security fixes or useful language
+features may be reviewed and ported as independent Yaklang changes, with their
+source commit recorded, but they are not automatic upstream synchronisations.
+
+The upstream Goja and goja_nodejs code remains under its original MIT license.
+Yaklang's modifications are also released under the MIT license. See `LICENSE`
+and `NOTICE` for attribution and redistribution terms.
 
 ## Upstream baselines
 
@@ -12,8 +23,9 @@ uses a bounded PCRE2 fallback without depending on `github.com/dlclark/regexp2`.
   `1f56ff5bcf1444844c756986ed5fc03069aec1ff` (2026-02-12), integrated as a
   squashed git subtree under `nodejs/`.
 
-Future upstream syncs should preserve these two provenance points in the merge
-or subtree commit message and rerun the full root-module test matrix.
+These provenance points must remain in this document for the lifetime of the
+fork. Any selectively ported upstream change must be listed in the release
+notes and must rerun the full root-module test matrix.
 
 ## Module and toolchain policy
 
@@ -43,6 +55,28 @@ injectively by the 8-bit backend.
 `CGO_ENABLED=1` is required when a script needs the PCRE2 fallback. A no-cgo
 build is kept compilable for dependency analysis and tooling, but fallback-only
 patterns return a compile error at runtime.
+
+### Regular-expression changes from upstream
+
+- Removed every source and module dependency on `github.com/dlclark/regexp2`.
+- Kept Go's RE2 engine as the zero-cgo fast path for compatible expressions.
+- Added `go-pcre2-lite` v0.1.6 with embedded PCRE2 10.47 as the only
+  backtracking engine; no system PCRE2 installation is used and JIT is disabled.
+- Added PCRE2 callout-based ECMAScript lookbehind handling for right-to-left
+  captures, variable-length alternatives, nested assertions, and
+  internal/external/forward/mutual backreferences.
+- Preserved UTF-16 indexes and isolated surrogate behavior over PCRE2's 8-bit
+  UTF interface using the mapping described above.
+- Preserved PCRE2 match and depth limits, so the fallback remains bounded for
+  adversarial backtracking inputs.
+- Cached identical regexp literals per compiled Program by `(pattern, flags)`;
+  each JavaScript RegExp object still has independent mutable state such as
+  `lastIndex`.
+
+The compatibility implementation is primarily in `regexp.go`,
+`regexp_pcre2.go`, `regexp_nocgo.go`, `builtin_regexp.go`, and the compiler's
+regexp-literal cache. The lower-level ECMAScript lookbehind bridge is maintained
+in `github.com/VillanCh/go-pcre2-lite/regexp2/ecma_lookbehind.go`.
 
 ## Go 1.22 weak collections
 

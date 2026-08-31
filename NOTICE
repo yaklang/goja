@@ -1,0 +1,27 @@
+Yaklang Goja hard fork
+======================
+
+This repository contains a hard fork of:
+
+  goja
+  Copyright (c) 2016 Dmitry Panov
+  Copyright (c) 2012 Robert Krimen
+  Upstream: https://github.com/dop251/goja
+
+and incorporates code from:
+
+  goja_nodejs
+  Copyright (c) the goja_nodejs contributors
+  Upstream: https://github.com/dop251/goja_nodejs
+
+Yaklang-specific modifications and integration work are Copyright (c) the
+Yaklang contributors.
+
+The original code and Yaklang modifications are distributed under the MIT
+License in LICENSE. The integrated nodejs subtree also retains its upstream
+license at nodejs/LICENSE.
+
+The frozen source baselines, maintenance policy, dependency policy, and a
+technical description of the Yaklang changes are recorded in FORK.md. This
+fork is independently maintained by Yaklang and is not an upstream-tracking
+mirror.

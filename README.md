@@ -3,6 +3,12 @@ goja
 
 ECMAScript 5.1(+) implementation in Go.
 
+> **Yaklang maintained hard fork.** This repository is independently maintained
+> for Yaklang from the frozen upstream baselines recorded in [FORK.md](FORK.md).
+> It is not an upstream-tracking mirror and upstream branches will not be merged
+> automatically. The original project and the Yaklang modifications are
+> distributed under the MIT License; see [LICENSE](LICENSE) and [NOTICE](NOTICE).
+
 [![Go Reference](https://pkg.go.dev/badge/github.com/yaklang/goja.svg)](https://pkg.go.dev/github.com/yaklang/goja)
 
 Goja is an implementation of ECMAScript 5.1 in Go with emphasis on standard compliance and
