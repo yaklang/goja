@@ -6,7 +6,7 @@ generated module contains a lookbehind expression, so the compile benchmark
 also exercises the PCRE2 fallback rather than measuring parser-only code.
 
 Environment: Apple M1 Max, darwin/arm64, Go 1.22.12, cgo enabled,
-`go-pcre2-lite v0.1.5`. Each reported result ran for three iterations.
+`go-pcre2-lite v0.1.6`. Each reported result ran for three iterations.
 The compiler reuses identical regular-expression literals within one Program
 by `(pattern, flags)`, while each runtime RegExp object keeps independent
 mutable state such as `lastIndex`:
