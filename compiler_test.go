@@ -6100,6 +6100,44 @@ func TestBabel(t *testing.T) {
 	}
 }*/
 
+func TestCompilerReusesIdenticalRegexpLiterals(t *testing.T) {
+	program, err := Compile("regexp-cache.js", `
+		const a = /(?<=contact )[a-z]+/;
+		const b = /(?<=contact )[a-z]+/;
+		const c = /(?<=contact )[a-z]+/i;
+	`, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var patterns []*regexpPattern
+	for _, instruction := range program.code {
+		if create, ok := instruction.(*newRegexp); ok {
+			patterns = append(patterns, create.pattern)
+		}
+	}
+	if len(patterns) != 3 {
+		t.Fatalf("found %d regexp literals, want 3", len(patterns))
+	}
+	if patterns[0] != patterns[1] {
+		t.Fatal("identical pattern and flags were compiled twice")
+	}
+	if patterns[0] == patterns[2] {
+		t.Fatal("different flags unexpectedly shared a compiled pattern")
+	}
+	value, err := New().RunString(`
+		const first = /(?<=contact )[a-z]+/g;
+		const second = /(?<=contact )[a-z]+/g;
+		first.lastIndex = 7;
+		first.lastIndex === 7 && second.lastIndex === 0;
+	`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !value.ToBoolean() {
+		t.Fatal("cached literals unexpectedly shared mutable RegExp state")
+	}
+}
+
 func BenchmarkCompile(b *testing.B) {
 	data, err := os.ReadFile("testdata/S15.10.2.12_A1_T1.js")
 	if err != nil {

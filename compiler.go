@@ -90,6 +90,7 @@ type compiler struct {
 	codeScratchpad []instruction
 
 	stringCache map[unistring.String]Value
+	regexpCache map[regexpCacheKey]*regexpPattern
 }
 
 type binding struct {

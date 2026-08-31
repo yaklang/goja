@@ -1,7 +1,7 @@
 github.com/Masterminds/semver/v3 v3.5.0 h1:kQceYJfbupGfZOKZQg0kou0DgAKhzDg2NZPAwZ/2OOE=
 github.com/Masterminds/semver/v3 v3.5.0/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=
-github.com/VillanCh/go-pcre2-lite v0.1.4 h1:o+5vOtQz5IzgYcg6lY05lN53DXsvehOnl4xfM+30CFk=
-github.com/VillanCh/go-pcre2-lite v0.1.4/go.mod h1:fcKusizuM/3UUfAdqQlK5dX3RfYO/XUq12sCbzThagI=
+github.com/VillanCh/go-pcre2-lite v0.1.5 h1:iO9MZ+MLSDdK/z0xQPh1XLO6m0fBfwyYu4CzePnKe6o=
+github.com/VillanCh/go-pcre2-lite v0.1.5/go.mod h1:fcKusizuM/3UUfAdqQlK5dX3RfYO/XUq12sCbzThagI=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dop251/base64dec v0.0.0-20231022112746-c6c9f9a96217 h1:16iT9CBDOniJwFGPI41MbUDfEk74hFaKTqudrX8kenY=

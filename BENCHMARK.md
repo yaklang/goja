@@ -6,7 +6,10 @@ generated module contains a lookbehind expression, so the compile benchmark
 also exercises the PCRE2 fallback rather than measuring parser-only code.
 
 Environment: Apple M1 Max, darwin/arm64, Go 1.22.12, cgo enabled,
-`go-pcre2-lite v0.1.4`. Each reported result ran for three iterations:
+`go-pcre2-lite v0.1.5`. Each reported result ran for three iterations.
+The compiler reuses identical regular-expression literals within one Program
+by `(pattern, flags)`, while each runtime RegExp object keeps independent
+mutable state such as `lastIndex`:
 
 ```sh
 go test -run '^$' \
@@ -16,20 +19,20 @@ go test -run '^$' \
 
 | Operation | 5 MiB | 20 MiB | Time ratio | Allocated bytes (5 / 20 MiB) |
 |---|---:|---:|---:|---:|
-| Parse | 130.1 ms | 537.4 ms | 4.13x | 73.8 MB / 295.5 MB |
-| Compile | 341.6 ms | 1.439 s | 4.21x | 227.9 MB / 911.3 MB |
-| Execute compiled program | 21.73 ms | 101.9 ms | 4.69x | 25.6 MB / 103.8 MB |
-| Cold load (compile + execute) | 365.0 ms | 1.489 s | 4.08x | 253.5 MB / 1.015 GB |
+| Parse | 133.1 ms | 529.3 ms | 3.98x | 73.8 MB / 295.5 MB |
+| Compile | 249.0 ms | 968.7 ms | 3.89x | 204.0 MB / 816.1 MB |
+| Execute compiled program | 19.96 ms | 94.39 ms | 4.73x | 25.6 MB / 103.8 MB |
+| Cold load (compile + execute) | 265.9 ms | 1.086 s | 4.08x | 229.6 MB / 919.9 MB |
 
-A 4x source-size increase produces approximately 4.1x parse, compile, and
+A 4x source-size increase produces approximately 4.0x parse, compile, and
 cold-load time in this workload. The observed complexity is therefore linear,
 `Theta(n)`, with cache and garbage-collector effects accounting for the modest
 ratio variation. This is an empirical result for this source shape, not a
 worst-case guarantee for every JavaScript or regular expression.
 
 The external-bundle fixture also compiled Yakit's 28.09 MiB minified
-`main.94ece1a4.js` successfully. Its cold compile result was 1.808 s,
-1.369 GB allocated, 23,195,860 allocations, and 16.30 MB/s:
+`main.94ece1a4.js` successfully. Its cold compile result was 1.752 s,
+1.364 GB allocated, 23,136,763 allocations, and 16.81 MB/s:
 
 ```sh
 GOJA_PRODUCTION_BUNDLE=/path/to/main.min.js \
