@@ -1,59 +1,33 @@
 package goja
 
-import (
-	"runtime"
-	"sync"
-	"weak"
-)
+import "sync/atomic"
 
-type weakMap struct {
-	m map[weak.Pointer[Object]]Value
-	sync.Mutex
-}
+// weakMap uses key-owned references on Go 1.22, which has no weak.Pointer or
+// runtime.AddCleanup. This preserves JavaScript WeakMap semantics while keeping
+// the fork buildable on Yaklang's Go baseline. A value can remain reachable as
+// long as its key remains reachable after the WeakMap itself is collected.
+type weakMap uint64
+
+var weakMapSequence atomic.Uint64
 
 func (wm *weakMap) set(key *Object, value Value) {
-	p := weak.Make(key)
-	wm.Lock()
-	_, exists := wm.m[p]
-	wm.m[p] = value
-	wm.Unlock()
-	if !exists {
-		wmPtr := weak.Make(wm) // do not hold strong reference to wm so that it could be collected by GC
-		runtime.AddCleanup(key, func(p weak.Pointer[Object]) {
-			wm := wmPtr.Value()
-			if wm == nil {
-				return
-			}
-			wm.Lock()
-			delete(wm.m, p)
-			wm.Unlock()
-		}, p)
-	}
+	key.getWeakRefs()[*wm] = value
 }
 
-func (wm *weakMap) get(key *Object) (res Value) {
-	p := weak.Make(key)
-	wm.Lock()
-	res = wm.m[p]
-	wm.Unlock()
-	return
+func (wm *weakMap) get(key *Object) Value {
+	return key.weakRefs[*wm]
 }
 
-func (wm *weakMap) remove(key *Object) (removed bool) {
-	p := weak.Make(key)
-	wm.Lock()
-	if _, removed = wm.m[p]; removed {
-		delete(wm.m, p)
+func (wm *weakMap) remove(key *Object) bool {
+	if _, exists := key.weakRefs[*wm]; exists {
+		delete(key.weakRefs, *wm)
+		return true
 	}
-	wm.Unlock()
-	return
+	return false
 }
 
 func (wm *weakMap) has(key *Object) bool {
-	p := weak.Make(key)
-	wm.Lock()
-	_, exists := wm.m[p]
-	wm.Unlock()
+	_, exists := key.weakRefs[*wm]
 	return exists
 }
 
@@ -64,9 +38,7 @@ type weakMapObject struct {
 
 func (wmo *weakMapObject) init() {
 	wmo.baseObject.init()
-	wmo.m = weakMap{
-		m: make(map[weak.Pointer[Object]]Value),
-	}
+	wmo.m = weakMap(weakMapSequence.Add(1))
 }
 
 func (r *Runtime) weakMapProto_delete(call FunctionCall) Value {

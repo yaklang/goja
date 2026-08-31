@@ -430,7 +430,7 @@ func (self *_RegExp_parser) scanEscape(inClass bool) {
 		self.read()
 		return
 	case 'k':
-		// The rules are too complicated to implement here, so we pass it on to regexp2
+		// The rules are too complicated to implement here, so pass it to PCRE2.
 		self.error(false, "named group back-reference")
 		return
 	default:

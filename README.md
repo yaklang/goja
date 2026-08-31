@@ -3,24 +3,33 @@ goja
 
 ECMAScript 5.1(+) implementation in Go.
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/dop251/goja.svg)](https://pkg.go.dev/github.com/dop251/goja)
+> **Yaklang maintained hard fork.** This repository is independently maintained
+> for Yaklang from the frozen upstream baselines recorded in [FORK.md](FORK.md).
+> It is not an upstream-tracking mirror and upstream branches will not be merged
+> automatically. The original project and the Yaklang modifications are
+> distributed under the MIT License; see [LICENSE](LICENSE) and [NOTICE](NOTICE).
 
-Goja is an implementation of ECMAScript 5.1 in pure Go with emphasis on standard compliance and
-performance.
+[![Go Reference](https://pkg.go.dev/badge/github.com/yaklang/goja.svg)](https://pkg.go.dev/github.com/yaklang/goja)
+
+Goja is an implementation of ECMAScript 5.1 in Go with emphasis on standard compliance and
+performance. This Yaklang hard fork uses the standard-library RE2 engine for compatible regular
+expressions and embedded PCRE2 for ECMAScript features such as lookbehind and backreferences.
 
 This project was largely inspired by [otto](https://github.com/robertkrimen/otto).
 
-The minimum required Go version is 1.25.
+The minimum required Go version is 1.22.12.
 
 Features
 --------
 
  * Full ECMAScript 5.1 support (including regex and strict mode).
+ * No dependency on `github.com/dlclark/regexp2`; the PCRE2 fallback is provided by
+   `github.com/VillanCh/go-pcre2-lite` with PCRE2 10.47 vendored into the Go module.
  * Passes nearly all [tc39 tests](https://github.com/tc39/test262) for the features implemented so far. The goal is to
    pass all of them. See .tc39_test262_checkout.sh for the latest working commit id.
  * Capable of running Babel, Typescript compiler and pretty much anything written in ES5.
  * Sourcemaps.
- * Most of ES6 functionality, still work in progress, see https://github.com/dop251/goja/milestone/1?closed=1
+ * Most of ES6 functionality, still work in progress, see https://github.com/yaklang/goja/milestone/1?closed=1
 
 Known incompatibilities and caveats
 -----------------------------------
@@ -50,7 +59,7 @@ FAQ
 Although it's faster than many scripting language implementations in Go I have seen
 (for example it's 6-7 times faster than otto on average) it is not a
 replacement for V8 or SpiderMonkey or any other general-purpose JavaScript engine.
-You can find some benchmarks [here](https://github.com/dop251/goja/issues/2).
+You can find some benchmarks [here](https://github.com/yaklang/goja/issues/2).
 
 ### Why would I want to use it over a V8 wrapper?
 
@@ -61,8 +70,9 @@ If you need a scripting language that drives an engine written in Go so that
 you need to make frequent calls between Go and javascript passing complex data structures
 then the cgo overhead may outweigh the benefits of having a faster javascript engine.
 
-Because it's written in pure Go there are no cgo dependencies, it's very easy to build and it
-should run on any platform supported by Go.
+The PCRE2 fallback is self-contained and does not require a system PCRE2 installation, but it does
+require `CGO_ENABLED=1` and a C toolchain. Builds with cgo disabled compile for downstream tooling,
+but regular expressions that require the fallback engine are unavailable at runtime.
 
 It gives you a much better control over execution environment so can be useful for research.
 
@@ -77,13 +87,13 @@ it's not possible to pass object values between runtimes.
 setTimeout() and setInterval() are common functions to provide concurrent execution in ECMAScript environments, but the two functions are not part of the ECMAScript standard.
 Browsers and NodeJS just happen to provide similar, but not identical, functions. The hosting application need to control the environment for concurrent execution, e.g. an event loop, and supply the functionality to script code.
 
-There is a [separate project](https://github.com/dop251/goja_nodejs) aimed at providing some NodeJS functionality,
-and it includes an event loop.
+NodeJS compatibility packages, including the event loop, are maintained in this module under
+[`nodejs/`](nodejs/).
 
 ### Can you implement (feature X from ES6 or higher)?
 
 I will be adding features in their dependency order and as quickly as time permits. Please do not ask
-for ETAs. Features that are open in the [milestone](https://github.com/dop251/goja/milestone/1) are either in progress
+for ETAs. Features that are open in the [milestone](https://github.com/yaklang/goja/milestone/1) are either in progress
 or will be worked on next.
 
 The ongoing work is done in separate feature branches which are merged into master when appropriate.
@@ -124,13 +134,13 @@ if num := v.Export().(int64); num != 4 {
 
 Passing Values to JS
 --------------------
-Any Go value can be passed to JS using Runtime.ToValue() method. See the method's [documentation](https://pkg.go.dev/github.com/dop251/goja#Runtime.ToValue) for more details.
+Any Go value can be passed to JS using Runtime.ToValue() method. See the method's [documentation](https://pkg.go.dev/github.com/yaklang/goja#Runtime.ToValue) for more details.
 
 Exporting Values from JS
 ------------------------
 A JS value can be exported into its default Go representation using Value.Export() method.
 
-Alternatively it can be exported into a specific Go variable using [Runtime.ExportTo()](https://pkg.go.dev/github.com/dop251/goja#Runtime.ExportTo) method.
+Alternatively it can be exported into a specific Go variable using [Runtime.ExportTo()](https://pkg.go.dev/github.com/yaklang/goja#Runtime.ExportTo) method.
 
 Within a single export operation the same Object will be represented by the same Go value (either the same map, slice or
 a pointer to the same struct). This includes circular objects and makes it possible to export them.
@@ -139,7 +149,7 @@ Calling JS functions from Go
 ----------------------------
 There are 2 approaches:
 
-- Using [AssertFunction()](https://pkg.go.dev/github.com/dop251/goja#AssertFunction):
+- Using [AssertFunction()](https://pkg.go.dev/github.com/yaklang/goja#AssertFunction):
 ```go
 const SCRIPT = `
 function sum(a, b) {
@@ -164,7 +174,7 @@ if err != nil {
 fmt.Println(res)
 // Output: 42
 ```
-- Using [Runtime.ExportTo()](https://pkg.go.dev/github.com/dop251/goja#Runtime.ExportTo):
+- Using [Runtime.ExportTo()](https://pkg.go.dev/github.com/yaklang/goja#Runtime.ExportTo):
 ```go
 const SCRIPT = `
 function sum(a, b) {
@@ -195,7 +205,7 @@ Mapping struct field and method names
 -------------------------------------
 By default, the names are passed through as is which means they are capitalised. This does not match
 the standard JavaScript naming convention, so if you need to make your JS code look more natural or if you are
-dealing with a 3rd party library, you can use a [FieldNameMapper](https://pkg.go.dev/github.com/dop251/goja#FieldNameMapper):
+dealing with a 3rd party library, you can use a [FieldNameMapper](https://pkg.go.dev/github.com/yaklang/goja#FieldNameMapper):
 
 ```go
 vm := goja.New()
@@ -209,19 +219,21 @@ fmt.Println(res.Export())
 // Output: 42
 ```
 
-There are two standard mappers: [TagFieldNameMapper](https://pkg.go.dev/github.com/dop251/goja#TagFieldNameMapper) and
-[UncapFieldNameMapper](https://pkg.go.dev/github.com/dop251/goja#UncapFieldNameMapper), or you can use your own implementation.
+There are two standard mappers: [TagFieldNameMapper](https://pkg.go.dev/github.com/yaklang/goja#TagFieldNameMapper) and
+[UncapFieldNameMapper](https://pkg.go.dev/github.com/yaklang/goja#UncapFieldNameMapper), or you can use your own implementation.
 
 Native Constructors
 -------------------
 
 In order to implement a constructor function in Go use `func (goja.ConstructorCall) *goja.Object`.
-See [Runtime.ToValue()](https://pkg.go.dev/github.com/dop251/goja#Runtime.ToValue) documentation for more details.
+See [Runtime.ToValue()](https://pkg.go.dev/github.com/yaklang/goja#Runtime.ToValue) documentation for more details.
 
 Regular Expressions
 -------------------
 
-Goja uses the embedded Go regexp library where possible, otherwise it falls back to [regexp2](https://github.com/dlclark/regexp2).
+Goja uses the embedded Go regexp library where possible and
+[go-pcre2-lite](https://github.com/VillanCh/go-pcre2-lite) for lookaround,
+backreferences, named captures, and other expressions outside RE2.
 
 Exceptions
 ----------
@@ -302,4 +314,5 @@ func TestInterrupt(t *testing.T) {
 NodeJS Compatibility
 --------------------
 
-There is a [separate project](https://github.com/dop251/goja_nodejs) aimed at providing some of the NodeJS functionality.
+NodeJS compatibility packages are included in this module under [`nodejs/`](nodejs/). For example,
+the event loop is imported from `github.com/yaklang/goja/nodejs/eventloop`.

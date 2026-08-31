@@ -3,10 +3,10 @@ package goja
 import (
 	"math/big"
 
-	"github.com/dop251/goja/ast"
-	"github.com/dop251/goja/file"
-	"github.com/dop251/goja/token"
-	"github.com/dop251/goja/unistring"
+	"github.com/yaklang/goja/ast"
+	"github.com/yaklang/goja/file"
+	"github.com/yaklang/goja/token"
+	"github.com/yaklang/goja/unistring"
 )
 
 type compiledExpr interface {
@@ -2981,13 +2981,27 @@ func (c *compiler) compileArrayLiteral(v *ast.ArrayLiteral) compiledExpr {
 
 func (e *compiledRegexpLiteral) emitGetter(putOnStack bool) {
 	if putOnStack {
-		pattern, err := compileRegexp(e.expr.Pattern, e.expr.Flags)
-		if err != nil {
-			e.c.throwSyntaxError(e.offset, err.Error())
+		key := regexpCacheKey{pattern: e.expr.Pattern, flags: e.expr.Flags}
+		pattern := e.c.regexpCache[key]
+		if pattern == nil {
+			var err error
+			pattern, err = compileRegexp(e.expr.Pattern, e.expr.Flags)
+			if err != nil {
+				e.c.throwSyntaxError(e.offset, err.Error())
+			}
+			if e.c.regexpCache == nil {
+				e.c.regexpCache = make(map[regexpCacheKey]*regexpPattern)
+			}
+			e.c.regexpCache[key] = pattern
 		}
 
 		e.c.emit(&newRegexp{pattern: pattern, src: newStringValue(e.expr.Pattern)})
 	}
+}
+
+type regexpCacheKey struct {
+	pattern string
+	flags   string
 }
 
 func (c *compiler) compileRegexpLiteral(v *ast.RegExpLiteral) compiledExpr {
