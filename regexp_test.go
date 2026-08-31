@@ -240,7 +240,7 @@ func TestRegexpUTF16(t *testing.T) {
 	assert(compareArray("a\uD800\uDC00b".split(/(?:)/g), ["a", "\uD800", "\uDC00", "b"]), "#7");
 	assert(compareArray("0\x80".split(/(0){0}/g), ["0", undefined, "\x80"]), "#7+");
 
-	re = /(?=)a/; // a hack to use regexp2
+	re = /(?=)a/; // force the PCRE2 path
 	assert.sameValue(re.exec('\ud83d\ude02a').index, 2, "#8");
 
 	assert.sameValue(/./.exec('\ud83d\ude02')[0], '\ud83d', "#9");
@@ -500,7 +500,7 @@ func TestRegexpConsecutiveMatchCache(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if regex.self.(*regexpObject).pattern.regexp2Wrapper.cache != nil {
+	if regex.self.(*regexpObject).pattern.backtrackingWrapper.cache != nil {
 		t.Fatal("Cache is not nil (non-unicode)")
 	}
 
@@ -508,7 +508,7 @@ func TestRegexpConsecutiveMatchCache(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if regex.self.(*regexpObject).pattern.regexp2Wrapper.cache != nil {
+	if regex.self.(*regexpObject).pattern.backtrackingWrapper.cache != nil {
 		t.Fatal("Cache is not nil (unicode)")
 	}
 }

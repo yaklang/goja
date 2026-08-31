@@ -5,8 +5,8 @@ import (
 	"math/big"
 	"reflect"
 
-	"github.com/dop251/goja"
-	"github.com/dop251/goja_nodejs/errors"
+	"github.com/yaklang/goja"
+	"github.com/yaklang/goja/nodejs/errors"
 )
 
 func RequiredIntegerArgument(r *goja.Runtime, call goja.FunctionCall, name string, argIndex int) int64 {

@@ -3,10 +3,10 @@ package goja
 import (
 	"math/big"
 
-	"github.com/dop251/goja/ast"
-	"github.com/dop251/goja/file"
-	"github.com/dop251/goja/token"
-	"github.com/dop251/goja/unistring"
+	"github.com/yaklang/goja/ast"
+	"github.com/yaklang/goja/file"
+	"github.com/yaklang/goja/token"
+	"github.com/yaklang/goja/unistring"
 )
 
 type compiledExpr interface {

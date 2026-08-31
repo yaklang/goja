@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dop251/goja"
+	"github.com/yaklang/goja"
 
 	"go.uber.org/goleak"
 )

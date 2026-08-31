@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"sort"
 
-	"github.com/dop251/goja/unistring"
+	"github.com/yaklang/goja/unistring"
 )
 
 const (
@@ -49,6 +49,10 @@ var (
 type Object struct {
 	self    objectImpl
 	runtime *Runtime
+
+	// Go 1.22 compatibility storage for WeakMap and WeakSet. See
+	// builtin_weakmap.go for the GC trade-off.
+	weakRefs map[weakMap]Value
 }
 
 type iterNextFunc func() (propIterItem, iterNextFunc)
@@ -1627,6 +1631,15 @@ func (o *Object) defineOwnProperty(n Value, desc PropertyDescriptor, throw bool)
 	default:
 		return o.self.defineOwnPropertyStr(n.string(), desc, throw)
 	}
+}
+
+func (o *Object) getWeakRefs() map[weakMap]Value {
+	refs := o.weakRefs
+	if refs == nil {
+		refs = make(map[weakMap]Value)
+		o.weakRefs = refs
+	}
+	return refs
 }
 
 func (o *guardedObject) guard(props ...unistring.String) {

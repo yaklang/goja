@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dop251/goja"
-	"github.com/dop251/goja_nodejs/require"
+	"github.com/yaklang/goja"
+	"github.com/yaklang/goja/nodejs/require"
 )
 
 func TestBufferFrom(t *testing.T) {

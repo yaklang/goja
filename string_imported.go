@@ -9,8 +9,8 @@ import (
 	"unicode/utf16"
 	"unicode/utf8"
 
-	"github.com/dop251/goja/parser"
-	"github.com/dop251/goja/unistring"
+	"github.com/yaklang/goja/parser"
+	"github.com/yaklang/goja/unistring"
 
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"

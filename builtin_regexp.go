@@ -9,7 +9,7 @@ import (
 	"unicode/utf16"
 	"unicode/utf8"
 
-	"github.com/dop251/goja/parser"
+	"github.com/yaklang/goja/parser"
 )
 
 func (r *Runtime) newRegexpObject(proto *Object) *regexpObject {
@@ -188,7 +188,7 @@ func compileRegexpFromValueString(patternStr String, flags string) (*regexpPatte
 func compileRegexp(patternStr, flags string) (p *regexpPattern, err error) {
 	var global, ignoreCase, multiline, dotAll, sticky, unicode bool
 	var wrapper *regexpWrapper
-	var wrapper2 *regexp2Wrapper
+	var wrapper2 *backtrackingWrapper
 
 	if flags != "" {
 		invalidFlags := func() {
@@ -278,23 +278,23 @@ func compileRegexp(patternStr, flags string) (p *regexpPattern, err error) {
 	}
 
 	if wrapper == nil {
-		wrapper2, err = compileRegexp2(patternStr, multiline, dotAll, ignoreCase, unicode)
+		wrapper2, err = compileBacktrackingRegexp(patternStr, multiline, dotAll, ignoreCase, unicode)
 		if err != nil {
-			err = fmt.Errorf("Invalid regular expression (regexp2): %s (%v)", patternStr, err)
+			err = fmt.Errorf("invalid regular expression (PCRE2): %s (%v)", patternStr, err)
 			return
 		}
 	}
 
 	p = &regexpPattern{
-		src:            patternStr,
-		regexpWrapper:  wrapper,
-		regexp2Wrapper: wrapper2,
-		global:         global,
-		ignoreCase:     ignoreCase,
-		multiline:      multiline,
-		dotAll:         dotAll,
-		sticky:         sticky,
-		unicode:        unicode,
+		src:                 patternStr,
+		regexpWrapper:       wrapper,
+		backtrackingWrapper: wrapper2,
+		global:              global,
+		ignoreCase:          ignoreCase,
+		multiline:           multiline,
+		dotAll:              dotAll,
+		sticky:              sticky,
+		unicode:             unicode,
 	}
 	return
 }
